@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftwareControllablePowerStrip", "SoftwareControllablePowerStrip\SoftwareControllablePowerStrip.csproj", "{FDE6C8FE-B0B5-452E-8B6C-F48BF59FF283}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scps Control App", "Scps Control App\Scps Control App.csproj", "{3971E7A2-6457-448E-8CC0-1E2101995E4B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FDE6C8FE-B0B5-452E-8B6C-F48BF59FF283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDE6C8FE-B0B5-452E-8B6C-F48BF59FF283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDE6C8FE-B0B5-452E-8B6C-F48BF59FF283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDE6C8FE-B0B5-452E-8B6C-F48BF59FF283}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3971E7A2-6457-448E-8CC0-1E2101995E4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3971E7A2-6457-448E-8CC0-1E2101995E4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3971E7A2-6457-448E-8CC0-1E2101995E4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3971E7A2-6457-448E-8CC0-1E2101995E4B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BDE56437-43E2-45E0-BCC3-69C5C7EEEA14}
+	EndGlobalSection
+EndGlobal

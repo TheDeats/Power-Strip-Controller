@@ -1,0 +1,48 @@
+﻿<Window x:Class="Scps_Control_App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Scps_Control_App"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:vm="clr-namespace:Scps_Control_App.ViewModels"
+        mc:Ignorable="d"
+        Title="SCPS Controller" SizeToContent="WidthAndHeight">
+
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ComboBox Width="200" Height="25" Margin="10" ItemsSource="{Binding AvailableComPorts}" SelectedItem="{Binding SelectedComPort}" VerticalAlignment="Top" IsEnabled="{Binding IsNotConnected}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectionChanged">
+                    <i:InvokeCommandAction Command="{Binding SelectedComPortChangedCommand}"/>
+                </i:EventTrigger>
+                <i:EventTrigger EventName="DropDownOpened">
+                    <i:InvokeCommandAction Command="{Binding ComPortsDropDownOpenedCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </ComboBox>
+
+        <StackPanel Grid.Column="1" Width="80" Margin="0,10,10,10" VerticalAlignment="Top">
+            <Button Content="ON" Command="{Binding PowerOnCommand}" Height="25" IsEnabled="{Binding IsConnected}"/>
+            <Button Content="OFF" Command="{Binding PowerOffCommand}" Height="25" IsEnabled="{Binding IsConnected}" Margin="0,10,0,0"/>
+        </StackPanel>
+        
+
+    </Grid>
+</Window>
