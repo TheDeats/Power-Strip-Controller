@@ -7,24 +7,49 @@ namespace SoftwareControllablePowerStrip
     {
         private readonly SerialPort _serialPort;
         public event Action<byte[]> SerialPacketReceived = delegate { };
+        private const int SerialPortBufferSize = 1024;
 
-        public SerialPortCommunicator(SerialPort serialPort)
+        public string PortName
         {
-            _serialPort = serialPort;
+            get => _serialPort.PortName; 
         }
 
-        public bool Connect(string comPort)
+        public SerialPortCommunicator()
         {
-            _serialPort.PortName = comPort;
+            _serialPort = new SerialPort()
+            {
+                BaudRate = 9600,
+                DataBits = 8,
+                Parity = Parity.None,
+                StopBits = StopBits.One,
+                Handshake = Handshake.None,
+                DtrEnable = true
+                // RTS = false for Arduino Nano Every
+                // Enabling Dtr causes Arduino Every to reset on connection
+                // DTR must be enabled for first time connection after Arduino initial boot
+                // then you can leave DTR = false for subsequent connections to avoid Arduino reboot
+            };
+        }
+
+        /// <summary>
+        /// Connects the com port
+        /// </summary>
+        /// <param name="comPort">the com port to connect to ex: COM3</param>
+        /// <returns>True if the serial port opened successfully, false otherwise</returns>
+        public bool Connect(string portName, bool avoidReset)
+        {
             if (!_serialPort.IsOpen)
             {
+				_serialPort.PortName = portName;
+                _ = avoidReset ? _serialPort.DtrEnable = false : _serialPort.DtrEnable = true;
                 _serialPort.Open();
-            }
 
-            if (_serialPort.IsOpen)
-            {
-                _ = StartReadingAsync();
-            }
+				if (_serialPort.IsOpen)
+				{
+					_ = StartReadingAsync();
+				}
+			}
+
             return _serialPort.IsOpen;
         }
 
@@ -34,19 +59,12 @@ namespace SoftwareControllablePowerStrip
         /// <returns>true if disconnected, false otherwise.</returns>
         public bool Disconnect()
         {
-            try
-            {
-                if (_serialPort.IsOpen)
-                {
-                    _serialPort.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error closing COM port {_serialPort.PortName}. {ex.Message}");
-            }
+			if (_serialPort.IsOpen)
+			{
+				_serialPort.Close();
+			}
 
-            return !_serialPort.IsOpen;
+			return !_serialPort.IsOpen;
         }
 
         /// <summary>
@@ -82,11 +100,11 @@ namespace SoftwareControllablePowerStrip
         /// </remarks>
         private async Task StartReadingAsync()
         {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[SerialPortBufferSize];
 
             try
             {
-                while (_serialPort.IsOpen)
+                while (_serialPort!.IsOpen)
                 {
                     int actualLength;
 

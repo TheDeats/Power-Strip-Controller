@@ -4,7 +4,7 @@ namespace Scps_Control_App.Models
 {
     public class MainWindowModel
     {
-        private ScpsController _scpsController;
+        private readonly ScpsController _scpsController;
         public MainWindowModel()
         {
             _scpsController = new ScpsController();
@@ -15,7 +15,12 @@ namespace Scps_Control_App.Models
             return await _scpsController.ConnectAndTestAsync(comPort);
         }
 
-        public async Task<bool> PowerOffAsync()
+		public async Task<bool?> GetStateAsync()
+		{
+			return await _scpsController.GetStateAsync();
+		}
+
+		public async Task<bool> PowerOffAsync()
         {
             return await _scpsController.PowerOffAsync();
         }

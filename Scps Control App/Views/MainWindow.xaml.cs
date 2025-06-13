@@ -1,13 +1,6 @@
-﻿using System.Text;
+﻿using Scps_Control_App.ViewModels;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Scps_Control_App;
 
@@ -19,5 +12,25 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+    }
+
+	private void CycleTextBox_MouseWheel(object sender, MouseWheelEventArgs e)
+	{
+        int increment = MainWindowViewModel.ScrollWheelCycleDelayIncement;
+        MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
+        if (int.TryParse(CycleTextBox.Text, out int result))
+        {
+			viewModel.CycleDelay = result;
+		}
+
+        if (e.Delta > 0)
+        {
+            viewModel.CycleDelay += increment;
+		}
+
+        else if (e.Delta < 0 && viewModel.CycleDelay - increment >= MainWindowViewModel.MinCycleDelay)
+        {
+			viewModel.CycleDelay -= increment;
+		}
     }
 }

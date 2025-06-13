@@ -6,13 +6,18 @@
         xmlns:local="clr-namespace:Scps_Control_App"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:vm="clr-namespace:Scps_Control_App.ViewModels"
+        xmlns:conv="clr-namespace:Scps_Control_App.Converters"
         mc:Ignorable="d"
         Title="SCPS Controller" SizeToContent="WidthAndHeight">
 
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
-    
+
+    <Window.Resources>
+        <conv:BoolToColorConverter x:Key="BoolToColorConverter"/>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -27,20 +32,32 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <ComboBox Width="200" Height="25" Margin="10" ItemsSource="{Binding AvailableComPorts}" SelectedItem="{Binding SelectedComPort}" VerticalAlignment="Top" IsEnabled="{Binding IsNotConnected}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="SelectionChanged">
-                    <i:InvokeCommandAction Command="{Binding SelectedComPortChangedCommand}"/>
-                </i:EventTrigger>
-                <i:EventTrigger EventName="DropDownOpened">
-                    <i:InvokeCommandAction Command="{Binding ComPortsDropDownOpenedCommand}"/>
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
-        </ComboBox>
+        <StackPanel>
+            <ComboBox Width="200" Height="25" Margin="10,10,10,0" ItemsSource="{Binding AvailableComPorts}" SelectedItem="{Binding SelectedComPort}" VerticalAlignment="Top" IsEnabled="{Binding IsNotConnected}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectedComPortChangedCommand}"/>
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="DropDownOpened">
+                        <i:InvokeCommandAction Command="{Binding ComPortsDropDownOpenedCommand}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
 
-        <StackPanel Grid.Column="1" Width="80" Margin="0,10,10,10" VerticalAlignment="Top">
-            <Button Content="ON" Command="{Binding PowerOnCommand}" Height="25" IsEnabled="{Binding IsConnected}"/>
-            <Button Content="OFF" Command="{Binding PowerOffCommand}" Height="25" IsEnabled="{Binding IsConnected}" Margin="0,10,0,0"/>
+            <WrapPanel IsEnabled="{Binding IsConnected}" HorizontalAlignment="Center" Margin="0,0,0,0">
+                <Button Content="{Binding CycleButtonText}" Width="60" HorizontalAlignment="Left" Margin="0,20,0,10" Command="{Binding CyclePowerCommand}" Height="25" />
+                <StackPanel Margin="10,4,0,0">
+                    <Label Content="Delay (ms)" Padding="0" Margin="0,0,0,0"/>
+                    <TextBox x:Name="CycleTextBox" Text="{Binding CycleDelay}" Height="25" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MouseWheel="CycleTextBox_MouseWheel"/>
+                </StackPanel>
+                <Button Width="60" Height="25" Margin="10,20,0,10" Content="Get State" Command="{Binding GetStateCommand}"/>
+            </WrapPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Width="60" Margin="0,10,10,10" VerticalAlignment="Top" IsEnabled="{Binding IsConnected}">
+            <Label Content="Port 1" HorizontalContentAlignment="Center" Background="{Binding Port1State, Converter={StaticResource BoolToColorConverter}}" Width="60" FontWeight="Bold" FontSize="12" Foreground="Black"/>
+            <Button Content="{Binding OnOffButtonText}" Command="{Binding TogglePowerCommand}" Height="25" Margin="0,18,0,0" />
+            <!--" Button Content="OFF" Command="{Binding PowerOffCommand}" Height="25" Margin="0,20,0,0"/-->
         </StackPanel>
         
 

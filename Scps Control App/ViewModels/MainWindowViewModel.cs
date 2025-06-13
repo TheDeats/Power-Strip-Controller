@@ -1,21 +1,32 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Scps_Control_App.Models;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Management;
 using System.Text.RegularExpressions;
+using System.Windows;
 
 namespace Scps_Control_App.ViewModels
 {
     public partial class MainWindowViewModel : INotifyPropertyChanged
     {
-        private readonly MainWindowModel _model;
-        private List<string> _availableComPorts;
-        private string _selectedComPort = string.Empty;
-        private bool _isConnected;
-        private bool _isNotConnected = true;
+		private const string CycleText = "Cycle";
+		public const int MinCycleDelay = 1000;
+        private const string OFF = "OFF";
+        private const string ON = "ON";
+        public const int ScrollWheelCycleDelayIncement = 100;
+		private const string StopText = "Stop";
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+		private readonly MainWindowModel _model;
+        private List<string> _availableComPorts;
+        private string _cycleButtonText = CycleText;
+        private int _cycleDelay = 2000;
+		private bool _isConnected;
+		private bool _isNotConnected = true;
+		private bool? _port1State = false;
+		private string _selectedComPort = string.Empty;
+        private string _onOffButtonText = ON;
+
+		public event PropertyChangedEventHandler? PropertyChanged;
 
         public List<string> AvailableComPorts
         {
@@ -30,7 +41,27 @@ namespace Scps_Control_App.ViewModels
             }
         }
 
-        public bool IsConnected {
+        public string CycleButtonText
+        {
+            get => _cycleButtonText;
+            set
+            {
+                _cycleButtonText = value;
+                RaisePropertyChanged(nameof(CycleButtonText));
+            }
+		}
+
+        public int CycleDelay
+        {
+            get => _cycleDelay;
+            set
+            {
+                _cycleDelay = value;
+                RaisePropertyChanged(nameof(CycleDelay));
+            }
+        }
+
+		public bool IsConnected {
             get => _isConnected;
             set
             {
@@ -47,6 +78,27 @@ namespace Scps_Control_App.ViewModels
             {
                 _isNotConnected = value;
                 RaisePropertyChanged(nameof(IsNotConnected));
+            }
+        }
+
+        public string OnOffButtonText
+        {
+            get => _onOffButtonText;
+            set
+            {
+                _onOffButtonText = value;
+                RaisePropertyChanged(nameof(OnOffButtonText));
+			}
+		}
+
+
+		public bool? Port1State
+        {
+            get => _port1State;
+            set
+            {
+                _port1State = value;
+                RaisePropertyChanged(nameof(Port1State));
             }
         }
 
@@ -100,21 +152,96 @@ namespace Scps_Control_App.ViewModels
             await UpdateAvailableComPorts();
         }
 
-        /// <summary>
-        /// Power OFF
-        /// </summary>
-        /// <returns></returns>
-        [RelayCommand]
+		[RelayCommand]
+		private async Task CyclePower()
+        {
+            if (CycleDelay < MinCycleDelay)
+            {
+                CycleDelay = MinCycleDelay;
+            }
+
+            if (_port1State != null)
+            {
+                if (CycleButtonText == CycleText)
+                {
+                    CycleButtonText = StopText;
+                    _ = StartCycle();
+				}
+                else
+                {
+                    CycleButtonText = CycleText;
+                }
+			}
+            await Task.CompletedTask;
+        }
+
+		[RelayCommand]
+		private async Task GetState()
+		{
+            try
+            {
+                await GetStateAsync();
+			}
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{ex.Message} {ex.InnerException?.Message}");
+            }
+		}
+
+		private async Task StartCycle()
+        {
+			while (CycleButtonText == StopText)
+			{
+                if (!(bool)Port1State!)
+                {
+					if (await _model.PowerOnAsync())
+					{
+						Port1State = true;
+						OnOffButtonText = OFF;
+					}
+				}
+                else
+                {
+					if (await _model.PowerOffAsync())
+					{
+						Port1State = false;
+						OnOffButtonText = ON;
+					}
+				}
+                await Task.Delay(CycleDelay);
+			}
+		}
+
+        public async Task<bool?> GetStateAsync()
+        {
+			Port1State = await _model.GetStateAsync();
+			if (Port1State != null)
+			{
+				_ = (bool)Port1State ? OnOffButtonText = OFF : OnOffButtonText = ON;
+			}
+            return Port1State;
+		}
+
+		/// <summary>
+		/// Power OFF
+		/// </summary>
+		/// <returns></returns>
+		[RelayCommand]
         private async Task PowerOff()
         {
             try
             {
-                await _model.PowerOffAsync();
+				CycleButtonText = CycleText;
+				if (await _model.PowerOffAsync())
+                {
+					Port1State = false;
+                    OnOffButtonText = ON;
+				}
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
-            }
+				MessageBox.Show($"{ex.Message} {ex.InnerException?.Message}");
+			}
         }
 
         /// <summary>
@@ -126,12 +253,17 @@ namespace Scps_Control_App.ViewModels
         {
             try
             {
-                await _model.PowerOnAsync();
+				CycleButtonText = CycleText;
+				if (await _model.PowerOnAsync())
+                {
+					Port1State = true;
+                    OnOffButtonText = OFF;
+				}
             }
             catch(Exception ex)
             {
-                Debug.WriteLine(ex.Message);
-            }
+				MessageBox.Show($"{ex.Message} {ex.InnerException?.Message}");
+			}
         }
 
         /// <summary>
@@ -150,10 +282,46 @@ namespace Scps_Control_App.ViewModels
         [RelayCommand]
         private async Task SelectedComPortChanged()
         {
-            IsConnected = await _model.ConnectAsync(SelectedComPortConnectableName);
+            try
+            {
+				IsConnected = await _model.ConnectAsync(SelectedComPortConnectableName);
+                if (!IsConnected)
+                {
+                    MessageBox.Show($"Failed to connect to {SelectedComPortConnectableName}");
+				}
+                else
+                {
+					await GetStateAsync();
+				}
+			}
+            catch (Exception ex)
+            {
+				MessageBox.Show($"{ex.Message} {ex.InnerException?.Message}");
+			}
         }
 
-        private async Task UpdateAvailableComPorts()
+        [RelayCommand]
+        private async Task TogglePower()
+        {
+            try
+            {
+				if (Port1State == true)
+				{
+					await PowerOff();
+				}
+				else if (Port1State == false)
+				{
+					await PowerOn();
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"{ex.Message} {ex.InnerException?.Message}");
+			}
+		}
+
+
+		private async Task UpdateAvailableComPorts()
         {
             await Task.Run(() =>
             {
